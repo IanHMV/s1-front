@@ -13,6 +13,7 @@ import { changePassword, updateUserProfile, userProfileQuery } from '@api/user';
 import { AuthenticationService } from '../auth/authentication.service';
 
 import { CatalogosService } from '@app/services/catalogos.service';
+import { limpiarClave, limpiarEspacios } from '@utils/utils';
 
 @Component({
   selector: 'app-perfil',
@@ -132,7 +133,7 @@ export class PerfilComponent implements OnInit {
 
       this.user = data.userProfile || null;
 
-      this.profileForm.patchValue(this.user);
+      this.profileForm.patchValue(limpiarEspacios(this.user) || {});
 
       if (this.user.institucion) {
         const ins = this.user.institucion;
@@ -173,7 +174,9 @@ export class PerfilComponent implements OnInit {
   }
 
   async saveInfoProfile() {
-    const profile = this.profileForm.value;
+    const profile = limpiarEspacios(this.profileForm.value);
+    profile.curp = limpiarClave(profile.curp);
+    profile.rfc = limpiarClave(profile.rfc);
 
     if (this.institucionesCatalogo?.length) {
       profile.institucion = {

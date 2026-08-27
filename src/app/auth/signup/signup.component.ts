@@ -9,6 +9,7 @@ import { AuthenticationService } from '../authentication.service';
 
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CatalogosService } from '@app/services/catalogos.service';
+import { limpiarClave, limpiarEspacios } from '@utils/utils';
 
 const log = new Logger('Signup');
 
@@ -52,7 +53,10 @@ export class SignupComponent implements OnInit, OnDestroy {
   signup() {
     this.isLoading = true;
 
-    const signupForm = this.signupForm.value;
+    const signupForm = limpiarEspacios(this.signupForm.value, ['contrasena', 'confirmarContrasena']);
+    signupForm.curp = limpiarClave(signupForm.curp);
+    signupForm.rfc = limpiarClave(signupForm.rfc);
+
     if (this.institucionesCatalogo?.length) {
       signupForm.institucion = {
         clave: signupForm.institucion.clave,

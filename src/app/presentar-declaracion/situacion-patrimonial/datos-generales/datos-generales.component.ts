@@ -17,7 +17,7 @@ import Paises from '@static/catalogos/paises.json';
 import SituacionPersonalEstadoCivil from '@static/catalogos/situacionPersonalEstadoCivil.json';
 import RegimenMatrimonial from '@static/catalogos/regimenMatrimonial.json';
 import { tooltipData } from '@static/tooltips/situacion-patrimonial/datos-generales';
-import { findOption } from '@utils/utils';
+import { findOption, limpiarEspacios, separarRfc } from '@utils/utils';
 
 @UntilDestroy()
 @Component({
@@ -152,9 +152,8 @@ export class DatosGeneralesComponent implements OnInit {
 
   async getUserDataQuery() {
     const credentials = JSON.parse(localStorage.getItem('credentials'));
-    const rfc = credentials.user.rfc.slice(0, 10);
-    const homo = credentials.user.rfc.slice(10, 13);
-    const dataUser = { ...credentials.user, rfc: { rfc, homoClave: homo } };
+    const usuario = limpiarEspacios(credentials.user);
+    const dataUser = { ...usuario, rfc: separarRfc(usuario.rfc) };
 
     this.datosGeneralesForm.patchValue({ ...dataUser } || {});
   }
