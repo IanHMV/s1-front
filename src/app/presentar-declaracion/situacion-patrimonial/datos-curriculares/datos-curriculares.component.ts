@@ -35,6 +35,7 @@ export class DatosCurricularesComponent implements OnInit {
   aclaraciones = false;
   aclaracionesText: string = null;
   datosCurricularesDeclaranteForm: FormGroup;
+  datosHeredados = false;
   editMode = true;
   editIndex: number = null;
   escolaridad: Escolaridad[] = [];
@@ -120,6 +121,7 @@ export class DatosCurricularesComponent implements OnInit {
       }
 
       this.setupForm(data?.lastDeclaracion?.datosCurricularesDeclarante);
+      this.datosHeredados = !!this.escolaridad.length;
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -176,6 +178,15 @@ export class DatosCurricularesComponent implements OnInit {
     } else {
       this.router.navigate([url + '/situacion-patrimonial/datos-empleo']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      escolaridad: [...this.escolaridad],
+      aclaracionesObservaciones: this.datosCurricularesDeclaranteForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -239,6 +250,7 @@ export class DatosCurricularesComponent implements OnInit {
       }
 
       this.editMode = false;
+      this.datosHeredados = false;
       this.setupForm(data?.declaracion.datosCurricularesDeclarante);
       this.presentSuccessAlert();
     } catch (error) {

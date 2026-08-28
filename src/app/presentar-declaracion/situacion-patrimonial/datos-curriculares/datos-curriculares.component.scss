@@ -3,3 +3,7 @@
   flex: 1;
   background-color: #ffffff;
 }
+
+.boton-agregar button + button {
+  margin-left: 10px;
+}
