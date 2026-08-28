@@ -39,6 +39,7 @@ export class PrestamosTercerosComponent implements OnInit {
   aclaracionesText: string = null;
   prestamoComodatoForm: FormGroup;
   estado: Catalogo;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   prestamo: Prestamo[] = [];
@@ -317,15 +318,15 @@ export class PrestamosTercerosComponent implements OnInit {
         })
         .toPromise();
 
-      if (errors) { 
+      if (errors) {
         throw errors;
       }
 
-     const lastPrestamoComodatoData = data?.lastDeclaracion?.prestamoComodato;
-       if (lastPrestamoComodatoData && !lastPrestamoComodatoData.ninguno) {
+      const lastPrestamoComodatoData = data?.lastDeclaracion?.prestamoComodato;
+      if (lastPrestamoComodatoData && !lastPrestamoComodatoData.ninguno) {
         this.setupForm(lastPrestamoComodatoData);
+        this.datosHeredados = !!this.prestamo?.length;
       }
-
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -356,12 +357,12 @@ export class PrestamosTercerosComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.prestamoComodatoForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.prestamoComodatoForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -373,6 +374,15 @@ export class PrestamosTercerosComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/intereses/participacion-empresa']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      prestamo: [...this.prestamo],
+      aclaracionesObservaciones: this.prestamoComodatoForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -435,6 +445,7 @@ export class PrestamosTercerosComponent implements OnInit {
         })
         .toPromise();
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.prestamoComodato) {
         this.setupForm(data.declaracion.prestamoComodato);
       }
@@ -549,4 +560,3 @@ export class PrestamosTercerosComponent implements OnInit {
     this.aclaraciones = value;
   }
 }
-

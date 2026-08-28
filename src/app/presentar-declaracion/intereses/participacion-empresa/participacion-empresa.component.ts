@@ -37,6 +37,7 @@ export class ParticipacionEmpresaComponent implements OnInit {
   aclaraciones = false;
   aclaracionesText: string = null;
   participacionForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   participacion: Participacion[] = [];
@@ -191,12 +192,12 @@ export class ParticipacionEmpresaComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.participacionForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.participacionForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -208,6 +209,15 @@ export class ParticipacionEmpresaComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/intereses/toma-decisiones']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      participacion: [...this.participacion],
+      aclaracionesObservaciones: this.participacionForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -271,6 +281,7 @@ export class ParticipacionEmpresaComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.participacion) {
         this.setupForm(data.declaracion.participacion);
       }
@@ -323,6 +334,7 @@ export class ParticipacionEmpresaComponent implements OnInit {
       const lastParticipacionData = data?.lastDeclaracion?.participacion;
       if (lastParticipacionData && !lastParticipacionData.ninguno) {
         this.setupForm(lastParticipacionData);
+        this.datosHeredados = !!this.participacion.length;
       }
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
@@ -356,9 +368,7 @@ export class ParticipacionEmpresaComponent implements OnInit {
     }
 
     if (pais) {
-      this.participacionForm
-        .get('participacion.ubicacion.pais')
-        .setValue(findOption(this.paisesCatalogo, pais).clave);
+      this.participacionForm.get('participacion.ubicacion.pais').setValue(findOption(this.paisesCatalogo, pais).clave);
     }
   }
 

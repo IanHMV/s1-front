@@ -153,12 +153,12 @@
             </div>
             <div class="paragraph-flex">
               <mat-icon matPrefix class="icon">feedback</mat-icon>
-              <p>{{ inmueble.valorConformeA | replace : '_' : ' ' }}</p>
+              <p>{{ inmueble.valorConformeA | replace: '_':' ' }}</p>
             </div>
             <div class="paragraph-flex">
               <mat-icon matPrefix class="icon">credit_card</mat-icon>
               <p>
-                Forma de pago: <span class="resaltar">{{ inmueble.formaPago | replace : '_' : ' ' }}</span>
+                Forma de pago: <span class="resaltar">{{ inmueble.formaPago | replace: '_':' ' }}</span>
               </p>
             </div>
             <div class="paragraph-flex">
@@ -169,7 +169,7 @@
               <mat-icon matPrefix class="icon">date_range</mat-icon>
               <p>
                 Fecha de adquisición del inmueble:
-                <span class="resaltar">{{ inmueble.fechaAdquisicion | date : 'dd/MM/yyyy' }}</span>
+                <span class="resaltar">{{ inmueble.fechaAdquisicion | date: 'dd/MM/yyyy' }}</span>
               </p>
             </div>
             <div class="paragraph-flex">
@@ -251,8 +251,21 @@
         <p class="vertical-margin-25">{{ aclaracionesText }}</p>
       </div>
 
+      <p class="vertical-margin-25" *ngIf="datosHeredados && !editMode">
+        Si deseas continuar con los datos anteriores y no hay ningún cambio, da clic en <b>GUARDAR SIN CAMBIOS</b> y
+        después en <b>CONTINUAR</b>.
+      </p>
       <div class="boton-agregar" *ngIf="(bienInmueble.length && !editMode) || bienesInmueblesForm.value.ninguno">
         <button mat-raised-button color="primary" (click)="addItem()">Agregar Bien Inmueble</button>
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="datosHeredados"
+          [disabled]="isLoading"
+          (click)="guardarSinCambios()"
+        >
+          GUARDAR SIN CAMBIOS
+        </button>
       </div>
     </div>
 
@@ -379,7 +392,7 @@
               <mat-icon matPrefix>credit_card</mat-icon>
               <mat-select formControlName="formaPago" required>
                 <mat-option *ngFor="let formaPago of formaPagoCatalogo" value="{{ formaPago }}">
-                  {{ formaPago | replace : '_' : ' ' }}
+                  {{ formaPago | replace: '_':' ' }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
@@ -511,7 +524,7 @@
               <mat-icon matPrefix>feedback</mat-icon>
               <mat-select formControlName="valorConformeA" required>
                 <mat-option *ngFor="let valorConformeA of valorConformeACatalogo" value="{{ valorConformeA }}">
-                  {{ valorConformeA | replace : '_' : ' ' }}
+                  {{ valorConformeA | replace: '_':' ' }}
                 </mat-option>
               </mat-select>
             </mat-form-field>

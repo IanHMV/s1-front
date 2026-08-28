@@ -150,7 +150,7 @@
               <mat-icon matPrefix class="icon">date_range</mat-icon>
               <p>
                 Fecha de adquisición del adeudo:
-                <span class="resaltar">{{ p.fechaAdquisicion | date : 'dd/MM/yyyy' }}</span>
+                <span class="resaltar">{{ p.fechaAdquisicion | date: 'dd/MM/yyyy' }}</span>
               </p>
             </div>
             <div class="paragraph-flex">
@@ -210,8 +210,21 @@
         <p class="vertical-margin-25">{{ aclaracionesText }}</p>
       </div>
 
+      <p class="vertical-margin-25" *ngIf="datosHeredados && !editMode">
+        Si deseas continuar con los datos anteriores y no hay ningún cambio, da clic en <b>GUARDAR SIN CAMBIOS</b> y
+        después en <b>CONTINUAR</b>.
+      </p>
       <div class="boton-agregar" *ngIf="(adeudo.length && !editMode) || adeudosPasivosForm.value.ninguno">
         <button mat-raised-button color="primary" (click)="addItem()">Agregar Pasivo</button>
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="datosHeredados"
+          [disabled]="isLoading"
+          (click)="guardarSinCambios()"
+        >
+          GUARDAR SIN CAMBIOS
+        </button>
       </div>
     </div>
 

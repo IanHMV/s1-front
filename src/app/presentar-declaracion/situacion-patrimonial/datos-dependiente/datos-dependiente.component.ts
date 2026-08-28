@@ -48,6 +48,7 @@ export class DatosDependienteComponent implements OnInit {
   aclaracionesText: string = null;
   datosDependientesEconomicosForm: FormGroup;
   dependienteEconomico: DependienteEconomico[] = [];
+  datosHeredados = false;
   editMode = false;
   estado: Catalogo = null;
   editIndex: number = null;
@@ -303,10 +304,11 @@ export class DatosDependienteComponent implements OnInit {
       if (errors) {
         throw errors;
       }
-      
+
       const lastdatosDependientesEconomicosData = data?.lastDeclaracion.datosDependientesEconomicos;
-       if (lastdatosDependientesEconomicosData && !lastdatosDependientesEconomicosData.ninguno) {
+      if (lastdatosDependientesEconomicosData && !lastdatosDependientesEconomicosData.ninguno) {
         this.setupForm(lastdatosDependientesEconomicosData);
+        this.datosHeredados = !!this.dependienteEconomico.length;
       }
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
@@ -401,12 +403,12 @@ export class DatosDependienteComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.datosDependientesEconomicosForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.datosDependientesEconomicosForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -418,6 +420,15 @@ export class DatosDependienteComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/situacion-patrimonial/ingresos-netos']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      dependienteEconomico: [...this.dependienteEconomico],
+      aclaracionesObservaciones: this.datosDependientesEconomicosForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -489,6 +500,7 @@ export class DatosDependienteComponent implements OnInit {
       }
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data?.declaracion.datosDependientesEconomicos) {
         this.setupForm(data?.declaracion.datosDependientesEconomicos);
       }
@@ -534,8 +546,12 @@ export class DatosDependienteComponent implements OnInit {
   }
 
   setSelectedOptions() {
-    const { actividadLaboral, parentescoRelacion, domicilioExtranjero, domicilioMexico } =
-      this.datosDependientesEconomicosForm.value.dependienteEconomico;
+    const {
+      actividadLaboral,
+      parentescoRelacion,
+      domicilioExtranjero,
+      domicilioMexico,
+    } = this.datosDependientesEconomicosForm.value.dependienteEconomico;
 
     if (actividadLaboral) {
       this.datosDependientesEconomicosForm
@@ -548,8 +564,9 @@ export class DatosDependienteComponent implements OnInit {
         .setValue(findOption(this.parentescoRelacionCatalogo, parentescoRelacion.clave));
     }
     if (actividadLaboral.clave == 'PRI' || actividadLaboral.clave === 'OTR') {
-      const { sector } =
-        this.datosDependientesEconomicosForm.value.dependienteEconomico.actividadLaboralSectorPrivadoOtro;
+      const {
+        sector,
+      } = this.datosDependientesEconomicosForm.value.dependienteEconomico.actividadLaboralSectorPrivadoOtro;
       if (sector) {
         this.datosDependientesEconomicosForm
           .get('dependienteEconomico.actividadLaboralSectorPrivadoOtro.sector')

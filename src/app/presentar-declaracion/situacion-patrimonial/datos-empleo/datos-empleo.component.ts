@@ -34,6 +34,7 @@ import { UntilDestroy, untilDestroyed } from '@app/@core';
 export class DatosEmpleoComponent implements OnInit {
   aclaraciones = false;
   datosEmpleoCargoComisionForm: FormGroup;
+  datosHeredados = false;
   estado: Catalogo = null;
   isLoading = false;
 
@@ -167,6 +168,7 @@ export class DatosEmpleoComponent implements OnInit {
       }
 
       this.fillForm(data?.lastDeclaracion.datosEmpleoCargoComision);
+      this.datosHeredados = !!data?.lastDeclaracion.datosEmpleoCargoComision;
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -204,14 +206,13 @@ export class DatosEmpleoComponent implements OnInit {
   formHasChanges() {
     let url = '/' + this.tipoDeclaracion;
     if (this.declaracionSimplificada) url += '/simplificada';
-    let isDirty = this.datosEmpleoCargoComisionForm.dirty;
-    //console.log(isDirty);
+    const sinGuardar = this.datosEmpleoCargoComisionForm.dirty || this.datosHeredados;
 
-    if (isDirty) {
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -255,6 +256,7 @@ export class DatosEmpleoComponent implements OnInit {
       }
 
       this.isLoading = false;
+      this.datosHeredados = false;
       this.openSnackBar('Información actualizada', 'Aceptar');
     } catch (error) {
       console.log(error);

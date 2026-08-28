@@ -52,7 +52,7 @@
             <div class="paragraph-flex size-20">
               <mat-icon matPrefix class="icon">work</mat-icon>
               <p>
-                <span class="negritas">{{ r.tipoRelacion | replace : '_' : ' ' }}</span>
+                <span class="negritas">{{ r.tipoRelacion | replace: '_':' ' }}</span>
               </p>
             </div>
             <div class="paragraph-flex">
@@ -108,7 +108,7 @@
                 {{ r.ubicacion.pais ? r.ubicacion.pais : r.ubicacion.entidadFederativa.valor }}
               </p>
             </div>
-            <p>{{ r.fechaInicioRepresentacion | date : 'dd/MM/yyyy' }}</p>
+            <p>{{ r.fechaInicioRepresentacion | date: 'dd/MM/yyyy' }}</p>
           </div>
 
           <!-- <mat-divider></mat-divider>
@@ -140,8 +140,21 @@
         <p class="vertical-margin-25">{{ aclaracionesText }}</p>
       </div>
 
+      <p class="vertical-margin-25" *ngIf="datosHeredados && !editMode">
+        Si deseas continuar con los datos anteriores y no hay ningún cambio, da clic en <b>GUARDAR SIN CAMBIOS</b> y
+        después en <b>CONTINUAR</b>.
+      </p>
       <div class="boton-agregar" *ngIf="(representacion.length && !editMode) || representacionForm.value.ninguno">
         <button mat-raised-button color="primary" (click)="addItem()">Agregar Representación</button>
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="datosHeredados"
+          [disabled]="isLoading"
+          (click)="guardarSinCambios()"
+        >
+          GUARDAR SIN CAMBIOS
+        </button>
       </div>
     </div>
 
@@ -159,7 +172,7 @@
             <mat-icon matPrefix>person</mat-icon>
             <mat-select formControlName="tipoRelacion" required>
               <mat-option *ngFor="let relacion of relacionCatalogo" value="{{ relacion }}">
-                {{ relacion | replace : '_' : ' ' }}
+                {{ relacion | replace: '_':' ' }}
               </mat-option>
             </mat-select>
           </mat-form-field>

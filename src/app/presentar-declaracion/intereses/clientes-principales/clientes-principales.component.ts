@@ -31,6 +31,7 @@ export class ClientesPrincipalesComponent implements OnInit, AfterViewInit {
   aclaracionesText: string = null;
   cliente: Cliente[] = [];
   clientesPrincipalesForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   isLoading = false;
@@ -159,8 +160,8 @@ export class ClientesPrincipalesComponent implements OnInit, AfterViewInit {
       const lastClientesPrincipalesData = data?.lastDeclaracion?.clientesPrincipales;
       if (lastClientesPrincipalesData && !lastClientesPrincipalesData.ninguno) {
         this.setupForm(lastClientesPrincipalesData);
+        this.datosHeredados = !!this.cliente.length;
       }
-
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -233,12 +234,12 @@ export class ClientesPrincipalesComponent implements OnInit, AfterViewInit {
   }
 
   formHasChanges() {
-    let isDirty = this.clientesPrincipalesForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.clientesPrincipalesForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -250,6 +251,15 @@ export class ClientesPrincipalesComponent implements OnInit, AfterViewInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/intereses/beneficios-privados']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      cliente: [...this.cliente],
+      aclaracionesObservaciones: this.clientesPrincipalesForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -330,6 +340,7 @@ export class ClientesPrincipalesComponent implements OnInit, AfterViewInit {
       }
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.clientesPrincipales) {
         this.setupForm(data.declaracion.clientesPrincipales);
       }

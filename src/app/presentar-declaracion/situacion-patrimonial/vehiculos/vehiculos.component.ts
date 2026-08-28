@@ -38,6 +38,7 @@ export class VehiculosComponent {
   aclaraciones = false;
   aclaracionesText: string = null;
   vehiculosForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   vehiculo: Vehiculo[] = [];
@@ -142,7 +143,7 @@ export class VehiculosComponent {
           ],
         }),
         lugarRegistro: this.formBuilder.group({
-           // Establezca el campo 'pais' para que esté deshabilitado de forma predeterminada.
+          // Establezca el campo 'pais' para que esté deshabilitado de forma predeterminada.
           pais: [{ value: null, disabled: true }, [Validators.required]],
           entidadFederativa: [null, [Validators.required]],
         }),
@@ -208,6 +209,7 @@ export class VehiculosComponent {
       const lastVehiculosData = data?.lastDeclaracion?.vehiculos;
       if (lastVehiculosData && !lastVehiculosData.ninguno) {
         this.setupForm(lastVehiculosData);
+        this.datosHeredados = !!this.vehiculo.length;
       }
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
@@ -239,12 +241,12 @@ export class VehiculosComponent {
   }
 
   formHasChanges() {
-    let isDirty = this.vehiculosForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.vehiculosForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -256,6 +258,15 @@ export class VehiculosComponent {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/situacion-patrimonial/bienes-muebles']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      vehiculo: [...this.vehiculo],
+      aclaracionesObservaciones: this.vehiculosForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   noVehicle() {
@@ -316,6 +327,7 @@ export class VehiculosComponent {
         })
         .toPromise();
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.vehiculos) {
         this.setupForm(data.declaracion.vehiculos);
       }

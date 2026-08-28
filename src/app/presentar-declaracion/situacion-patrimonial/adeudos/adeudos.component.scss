@@ -20,3 +20,6 @@ mat-card-content > div {
 .grid-3fr-1fr .paragraph-flex {
   align-self: center;
 }
+.boton-agregar button + button {
+  margin-left: 10px;
+}

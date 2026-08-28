@@ -43,6 +43,7 @@ export class RepresentacionComponent implements OnInit {
   aclaracionesText: string = null;
   representacion: Representacion[] = [];
   representacionForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   isLoading = false;
@@ -191,8 +192,8 @@ export class RepresentacionComponent implements OnInit {
       const lastRepresentacionesData = data?.lastDeclaracion?.representaciones;
       if (lastRepresentacionesData && !lastRepresentacionesData.ninguno) {
         this.setupForm(lastRepresentacionesData);
+        this.datosHeredados = !!this.representacion.length;
       }
-
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -223,12 +224,12 @@ export class RepresentacionComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.representacionForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.representacionForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -240,6 +241,15 @@ export class RepresentacionComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/intereses/clientes-principales']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      representacion: [...this.representacion],
+      aclaracionesObservaciones: this.representacionForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -303,6 +313,7 @@ export class RepresentacionComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.representaciones) {
         this.setupForm(data.declaracion.representaciones);
       }

@@ -42,6 +42,7 @@ export class BienesInmueblesComponent implements OnInit {
   aclaracionesText: string = null;
   bienesInmueblesForm: FormGroup;
   estado: Catalogo = null;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   bienInmueble: BienInmueble[] = [];
@@ -228,6 +229,7 @@ export class BienesInmueblesComponent implements OnInit {
       const lastBienesInmueblesData = data?.lastDeclaracion?.bienesInmuebles;
       if (lastBienesInmueblesData && !lastBienesInmueblesData.ninguno) {
         this.setupForm(lastBienesInmueblesData);
+        this.datosHeredados = !!this.bienInmueble.length;
       }
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
@@ -260,12 +262,12 @@ export class BienesInmueblesComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.bienesInmueblesForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.bienesInmueblesForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -277,6 +279,15 @@ export class BienesInmueblesComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/situacion-patrimonial/vehiculos']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      bienInmueble: [...this.bienInmueble],
+      aclaracionesObservaciones: this.bienesInmueblesForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -340,6 +351,7 @@ export class BienesInmueblesComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.bienesInmuebles) {
         this.setupForm(data.declaracion.bienesInmuebles);
       }
@@ -368,8 +380,7 @@ export class BienesInmueblesComponent implements OnInit {
   saveItem() {
     let bienInmueble = [...this.bienInmueble];
     const aclaracionesObservaciones = this.bienesInmueblesForm.get('aclaracionesObservaciones').value;
-     const newItem = this.bienesInmueblesForm.value.bienInmueble;
-
+    const newItem = this.bienesInmueblesForm.value.bienInmueble;
 
     if (this.tipoDomicilio === 'MEXICO') {
       newItem.domicilioExtranjero = null;

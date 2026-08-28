@@ -29,6 +29,7 @@ export class DatosGeneralesComponent implements OnInit {
   array_anio_ejercicio: Array<number> = [];
   aclaraciones = false;
   datosGeneralesForm: FormGroup;
+  datosHeredados = false;
   isLoading = false;
   currentYear = new Date().getFullYear();
   anio_ejercicio: number = null;
@@ -171,6 +172,7 @@ export class DatosGeneralesComponent implements OnInit {
       }
 
       this.fillForm(data?.lastDeclaracion?.datosGenerales);
+      this.datosHeredados = !!data?.lastDeclaracion?.datosGenerales;
       this.getUserDataQuery();
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
@@ -232,13 +234,13 @@ export class DatosGeneralesComponent implements OnInit {
   formHasChanges() {
     let url = '/' + this.tipoDeclaracion;
     if (this.declaracionSimplificada) url += '/simplificada';
-    let isDirty = this.datosGeneralesForm.dirty;
+    const sinGuardar = this.datosGeneralesForm.dirty || this.datosHeredados;
 
-    if (isDirty) {
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -284,6 +286,7 @@ export class DatosGeneralesComponent implements OnInit {
       }
 
       this.isLoading = false;
+      this.datosHeredados = false;
       this.openSnackBar('Información actualizada', 'Aceptar');
     } catch (error) {
       console.log(error);

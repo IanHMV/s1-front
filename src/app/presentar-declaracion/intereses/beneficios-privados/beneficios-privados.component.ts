@@ -32,6 +32,7 @@ export class BeneficiosPrivadosComponent implements OnInit {
   aclaracionesText: string = null;
   beneficio: Beneficio[] = [];
   beneficiosPrivadosForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   isLoading = false;
@@ -173,8 +174,8 @@ export class BeneficiosPrivadosComponent implements OnInit {
       const lastBeneficiosPrivadosData = data?.lastDeclaracion?.beneficiosPrivados;
       if (lastBeneficiosPrivadosData && !lastBeneficiosPrivadosData.ninguno) {
         this.setupForm(lastBeneficiosPrivadosData);
+        this.datosHeredados = !!this.beneficio.length;
       }
-
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -224,12 +225,12 @@ export class BeneficiosPrivadosComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.beneficiosPrivadosForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.beneficiosPrivadosForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -241,6 +242,15 @@ export class BeneficiosPrivadosComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/intereses/fideicomisos']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      beneficio: [...this.beneficio],
+      aclaracionesObservaciones: this.beneficiosPrivadosForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -308,6 +318,7 @@ export class BeneficiosPrivadosComponent implements OnInit {
       }
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.beneficiosPrivados) {
         this.setupForm(data.declaracion.beneficiosPrivados);
       }

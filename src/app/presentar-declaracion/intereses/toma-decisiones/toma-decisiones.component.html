@@ -80,7 +80,7 @@
           <div class="paragraph-flex">
             <mat-icon matPrefix class="icon">beenhere</mat-icon>
             <p>
-              <span>{{ e.fechaInicioParticipacion | date : 'dd/MM/yyyy' }}</span>
+              <span>{{ e.fechaInicioParticipacion | date: 'dd/MM/yyyy' }}</span>
             </p>
           </div>
         </div>
@@ -136,11 +136,24 @@
         <p class="vertical-margin-25">{{ aclaracionesText }}</p>
       </div>
 
+      <p class="vertical-margin-25" *ngIf="datosHeredados && !editMode">
+        Si deseas continuar con los datos anteriores y no hay ningún cambio, da clic en <b>GUARDAR SIN CAMBIOS</b> y
+        después en <b>CONTINUAR</b>.
+      </p>
       <div
         class="boton-agregar"
         *ngIf="(participacion.length && !editMode) || participacionTomaDecisionesForm.value.ninguno"
       >
         <button mat-raised-button color="primary" (click)="addItem()">AGREGAR PARTICIPACIÓN</button>
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="datosHeredados"
+          [disabled]="isLoading"
+          (click)="guardarSinCambios()"
+        >
+          GUARDAR SIN CAMBIOS
+        </button>
       </div>
     </div>
 

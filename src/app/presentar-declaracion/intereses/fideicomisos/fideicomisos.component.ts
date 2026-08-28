@@ -32,6 +32,7 @@ export class FideicomisosComponent implements OnInit {
   aclaracionesText: string = null;
   fideicomiso: Fideicomiso[] = [];
   fideicomisosForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   isLoading = false;
@@ -184,8 +185,8 @@ export class FideicomisosComponent implements OnInit {
       const lastFideicomisosData = data?.lastDeclaracion?.fideicomisos;
       if (lastFideicomisosData && !lastFideicomisosData.ninguno) {
         this.setupForm(lastFideicomisosData);
+        this.datosHeredados = !!this.fideicomiso.length;
       }
-
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -228,6 +229,15 @@ export class FideicomisosComponent implements OnInit {
     }
 
     return result;
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      fideicomiso: [...this.fideicomiso],
+      aclaracionesObservaciones: this.fideicomisosForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -295,6 +305,7 @@ export class FideicomisosComponent implements OnInit {
       }
 
       this.editMode = false;
+      this.datosHeredados = false;
       this.setupForm(data?.declaracion.fideicomisos);
       this.presentSuccessAlert();
     } catch (error) {

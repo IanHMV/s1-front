@@ -35,6 +35,7 @@ export class BienesMueblesComponent implements OnInit {
   aclaraciones = false;
   aclaracionesText: string = null;
   bienesMueblesForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   bienMueble: BienMueble[] = [];
@@ -161,8 +162,8 @@ export class BienesMueblesComponent implements OnInit {
       const lastBienesMueblesData = data?.lastDeclaracion?.bienesMuebles;
       if (lastBienesMueblesData && !lastBienesMueblesData.ninguno) {
         this.setupForm(lastBienesMueblesData);
+        this.datosHeredados = !!this.bienMueble.length;
       }
-      
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -194,12 +195,12 @@ export class BienesMueblesComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.bienesMueblesForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.bienesMueblesForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -211,6 +212,15 @@ export class BienesMueblesComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/situacion-patrimonial/inversiones']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      bienMueble: [...this.bienMueble],
+      aclaracionesObservaciones: this.bienesMueblesForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -274,6 +284,7 @@ export class BienesMueblesComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.bienesMuebles) {
         this.setupForm(data.declaracion.bienesMuebles);
       }

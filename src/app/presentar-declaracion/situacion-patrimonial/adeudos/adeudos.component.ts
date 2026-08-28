@@ -42,6 +42,7 @@ export class AdeudosComponent implements OnInit {
   aclaraciones = false;
   aclaracionesText: string = null;
   adeudosPasivosForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   adeudo: Adeudo[] = [];
@@ -182,8 +183,8 @@ export class AdeudosComponent implements OnInit {
       const lastAdeudosPasivosData = data?.lastDeclaracion?.adeudosPasivos;
       if (lastAdeudosPasivosData && !lastAdeudosPasivosData.ninguno) {
         this.setupForm(lastAdeudosPasivosData);
+        this.datosHeredados = !!this.adeudo.length;
       }
-      
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -214,12 +215,12 @@ export class AdeudosComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.adeudosPasivosForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.adeudosPasivosForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -231,6 +232,15 @@ export class AdeudosComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/situacion-patrimonial/prestamos-terceros']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      adeudo: [...this.adeudo],
+      aclaracionesObservaciones: this.adeudosPasivosForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -294,6 +304,7 @@ export class AdeudosComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.adeudosPasivos) {
         this.setupForm(data.declaracion.adeudosPasivos);
       }

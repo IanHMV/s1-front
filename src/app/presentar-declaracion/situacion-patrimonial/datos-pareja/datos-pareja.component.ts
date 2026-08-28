@@ -35,6 +35,7 @@ export class DatosParejaComponent implements OnInit {
   aclaraciones = false;
 
   datosParejaForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   estado: Catalogo = null;
   isLoading = false;
@@ -273,6 +274,7 @@ export class DatosParejaComponent implements OnInit {
 
       if (data?.lastDeclaracion.datosPareja) {
         this.loadDataOldDeclaration(data?.lastDeclaracion.datosPareja);
+        this.datosHeredados = !!this.pareja;
       }
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
@@ -336,12 +338,12 @@ export class DatosParejaComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.datosParejaForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.datosParejaForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -375,6 +377,12 @@ export class DatosParejaComponent implements OnInit {
     }
 
     this.tipoDomicilio = value;
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo(this.finalForm);
+    this.isLoading = false;
   }
 
   async ngOnInit() {
@@ -442,6 +450,7 @@ export class DatosParejaComponent implements OnInit {
 
       this.isLoading = false;
       this.editMode = false;
+      this.datosHeredados = false;
 
       if (data?.declaracion.datosPareja) {
         this.setupForm(data?.declaracion.datosPareja);

@@ -31,6 +31,7 @@ export class ExperienciaLaboralComponent implements OnInit {
   aclaraciones = false;
   aclaracionesText: string = null;
   experienciaLaboralForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   experiencia: Experiencia[] = [];
@@ -208,6 +209,7 @@ export class ExperienciaLaboralComponent implements OnInit {
       const lastExperienciaLaboralData = data?.lastDeclaracion?.experienciaLaboral;
       if (lastExperienciaLaboralData && !lastExperienciaLaboralData.ninguno) {
         this.setupForm(lastExperienciaLaboralData);
+        this.datosHeredados = !!this.experiencia.length;
       }
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
@@ -277,14 +279,13 @@ export class ExperienciaLaboralComponent implements OnInit {
     url += '/situacion-patrimonial';
     if (this.declaracionSimplificada) url += '/ingresos-netos';
     else url += '/datos-pareja';
-    let isDirty = this.experienciaLaboralForm.dirty;
-    //console.log(isDirty);
+    const sinGuardar = this.experienciaLaboralForm.dirty || this.datosHeredados;
 
-    if (isDirty) {
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -296,6 +297,15 @@ export class ExperienciaLaboralComponent implements OnInit {
     } else {
       this.router.navigate([url]);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      experiencia: [...this.experiencia],
+      aclaracionesObservaciones: this.experienciaLaboralForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -363,6 +373,7 @@ export class ExperienciaLaboralComponent implements OnInit {
       }
 
       this.editMode = false;
+      this.datosHeredados = false;
       this.setupForm(data?.declaracion.experienciaLaboral);
       this.presentSuccessAlert();
     } catch (error) {

@@ -26,6 +26,7 @@ import { findOption } from '@utils/utils';
 export class DomicilioDeclaranteComponent implements OnInit {
   aclaraciones = false;
   domicilioDeclaranteForm: FormGroup;
+  datosHeredados = false;
   estado: Catalogo = null;
   isLoading = false;
 
@@ -135,6 +136,7 @@ export class DomicilioDeclaranteComponent implements OnInit {
       }
 
       this.fillForm(data?.lastDeclaracion?.domicilioDeclarante);
+      this.datosHeredados = !!data?.lastDeclaracion?.domicilioDeclarante;
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -172,14 +174,13 @@ export class DomicilioDeclaranteComponent implements OnInit {
   formHasChanges() {
     let url = '/' + this.tipoDeclaracion;
     if (this.declaracionSimplificada) url += '/simplificada';
-    let isDirty = this.domicilioDeclaranteForm.dirty;
-    //console.log(isDirty);
+    const sinGuardar = this.domicilioDeclaranteForm.dirty || this.datosHeredados;
 
-    if (isDirty) {
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -224,6 +225,7 @@ export class DomicilioDeclaranteComponent implements OnInit {
       }
 
       this.isLoading = false;
+      this.datosHeredados = false;
       this.openSnackBar('Información actualizada', 'Aceptar');
     } catch (error) {
       console.log(error);

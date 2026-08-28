@@ -32,6 +32,7 @@ export class ApoyosPublicosComponent implements OnInit {
   aclaracionesText: string = null;
   apoyo: Apoyo[] = [];
   apoyosForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   isLoading = false;
@@ -124,8 +125,8 @@ export class ApoyosPublicosComponent implements OnInit {
       const lastApoyosData = data?.lastDeclaracion?.apoyos;
       if (lastApoyosData && !lastApoyosData.ninguno) {
         this.setupForm(lastApoyosData);
+        this.datosHeredados = !!this.apoyo.length;
       }
-      
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -155,12 +156,12 @@ export class ApoyosPublicosComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.apoyosForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.apoyosForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -172,6 +173,15 @@ export class ApoyosPublicosComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/intereses/representacion']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      apoyo: [...this.apoyo],
+      aclaracionesObservaciones: this.apoyosForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -235,6 +245,7 @@ export class ApoyosPublicosComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       this.setupForm(data.declaracion.apoyos);
       this.presentSuccessAlert();
     } catch (error) {

@@ -47,6 +47,7 @@ export class InversionesComponent implements OnInit {
   aclaraciones = false;
   aclaracionesText: string = null;
   inversionesCuentasValoresForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   inversion: Inversion[] = [];
@@ -222,10 +223,10 @@ export class InversionesComponent implements OnInit {
       }
 
       const lastInversionesCuentasValoresData = data?.lastDeclaracion.inversionesCuentasValores;
-       if (lastInversionesCuentasValoresData && !lastInversionesCuentasValoresData.ninguno) {
+      if (lastInversionesCuentasValoresData && !lastInversionesCuentasValoresData.ninguno) {
         this.setupForm(lastInversionesCuentasValoresData);
+        this.datosHeredados = !!this.inversion.length;
       }
-      
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -256,12 +257,12 @@ export class InversionesComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.inversionesCuentasValoresForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.inversionesCuentasValoresForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -273,6 +274,15 @@ export class InversionesComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/situacion-patrimonial/adeudos']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      inversion: [...this.inversion],
+      aclaracionesObservaciones: this.inversionesCuentasValoresForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -336,6 +346,7 @@ export class InversionesComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.inversionesCuentasValores) {
         this.setupForm(data.declaracion.inversionesCuentasValores);
       }

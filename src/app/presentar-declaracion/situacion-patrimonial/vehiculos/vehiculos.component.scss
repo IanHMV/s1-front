@@ -11,3 +11,6 @@ h2,
 h3 {
   font-weight: 400;
 }
+.boton-agregar button + button {
+  margin-left: 10px;
+}

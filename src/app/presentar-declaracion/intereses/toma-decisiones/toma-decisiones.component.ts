@@ -46,6 +46,7 @@ export class TomaDecisionesComponent implements OnInit {
   aclaracionesText: string = null;
   participacion: ParticipacionTD[] = [];
   participacionTomaDecisionesForm: FormGroup;
+  datosHeredados = false;
   editMode = false;
   editIndex: number = null;
   estado: string = null;
@@ -139,12 +140,8 @@ export class TomaDecisionesComponent implements OnInit {
     });
 
     // Inicia con la opción de México seleccionada por defecto
-    this.participacionTomaDecisionesForm
-      .get('participacion.ubicacion.pais')
-      .disable();
-    this.participacionTomaDecisionesForm
-      .get('participacion.ubicacion.entidadFederativa')
-      .enable();
+    this.participacionTomaDecisionesForm.get('participacion.ubicacion.pais').disable();
+    this.participacionTomaDecisionesForm.get('participacion.ubicacion.entidadFederativa').enable();
 
     const montoMensual = this.participacionTomaDecisionesForm.get('participacion').get('montoMensual');
     this.participacionTomaDecisionesForm
@@ -205,10 +202,13 @@ export class TomaDecisionesComponent implements OnInit {
       }
 
       const lastParticipacionparticipacionTomaDecisionesData = data?.lastDeclaracion?.participacionTomaDecisiones;
-      if (lastParticipacionparticipacionTomaDecisionesData && !lastParticipacionparticipacionTomaDecisionesData.ninguno) {
+      if (
+        lastParticipacionparticipacionTomaDecisionesData &&
+        !lastParticipacionparticipacionTomaDecisionesData.ninguno
+      ) {
         this.setupForm(lastParticipacionparticipacionTomaDecisionesData);
+        this.datosHeredados = !!this.participacion.length;
       }
-      
     } catch (error) {
       console.warn('El usuario probablemente no tienen una declaración anterior', error.message);
       // this.openSnackBar('[ERROR: No se pudo recuperar la información]', 'Aceptar');
@@ -239,12 +239,12 @@ export class TomaDecisionesComponent implements OnInit {
   }
 
   formHasChanges() {
-    let isDirty = this.participacionTomaDecisionesForm.dirty;
-    if (isDirty) {
+    const sinGuardar = this.participacionTomaDecisionesForm.dirty || this.datosHeredados;
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
@@ -256,6 +256,15 @@ export class TomaDecisionesComponent implements OnInit {
     } else {
       this.router.navigate(['/' + this.tipoDeclaracion + '/intereses/apoyos-publicos']);
     }
+  }
+
+  async guardarSinCambios() {
+    this.isLoading = true;
+    await this.saveInfo({
+      participacion: [...this.participacion],
+      aclaracionesObservaciones: this.participacionTomaDecisionesForm.value.aclaracionesObservaciones,
+    });
+    this.isLoading = false;
   }
 
   ngOnInit(): void {}
@@ -319,6 +328,7 @@ export class TomaDecisionesComponent implements OnInit {
         .toPromise();
 
       this.editMode = false;
+      this.datosHeredados = false;
       if (data.declaracion.participacionTomaDecisiones) {
         this.setupForm(data.declaracion.participacionTomaDecisiones);
       }

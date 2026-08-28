@@ -50,7 +50,7 @@
             </div>
             <div class="paragraph-flex">
               <mat-icon matPrefix class="icon">dns</mat-icon>
-              <p>{{ a.nivelOrdenGobierno | replace : '_' : ' ' }}</p>
+              <p>{{ a.nivelOrdenGobierno | replace: '_':' ' }}</p>
             </div>
 
             <div class="paragraph-flex size-20">
@@ -110,8 +110,21 @@
         <p class="vertical-margin-25">{{ aclaracionesText }}</p>
       </div>
 
+      <p class="vertical-margin-25" *ngIf="datosHeredados && !editMode">
+        Si deseas continuar con los datos anteriores y no hay ningún cambio, da clic en <b>GUARDAR SIN CAMBIOS</b> y
+        después en <b>CONTINUAR</b>.
+      </p>
       <div class="boton-agregar" *ngIf="(apoyo.length && !editMode) || apoyosForm.value.ninguno">
         <button mat-raised-button color="primary" (click)="addItem()">AGREGAR APOYO</button>
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="datosHeredados"
+          [disabled]="isLoading"
+          (click)="guardarSinCambios()"
+        >
+          GUARDAR SIN CAMBIOS
+        </button>
       </div>
     </div>
 
@@ -162,7 +175,7 @@
             <mat-icon matPrefix>dns</mat-icon>
             <mat-select formControlName="nivelOrdenGobierno" required>
               <mat-option *ngFor="let NivelGobierno of NivelGobiernoCatalogo" value="{{ NivelGobierno }}">
-                {{ NivelGobierno | replace : '_' : ' ' }}
+                {{ NivelGobierno | replace: '_':' ' }}
               </mat-option>
             </mat-select>
           </mat-form-field>

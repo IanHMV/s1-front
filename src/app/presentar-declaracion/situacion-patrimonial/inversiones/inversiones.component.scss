@@ -23,3 +23,6 @@ mat-card-content > div {
   grid-column-gap: 25px;
   grid-row-gap: 25px;
 }
+.boton-agregar button + button {
+  margin-left: 10px;
+}

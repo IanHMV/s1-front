@@ -10,3 +10,6 @@ button {
 .aumento-adscripcion {
   font-size: 18px;
 }
+.boton-agregar button + button {
+  margin-left: 10px;
+}
