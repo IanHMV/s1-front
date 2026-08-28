@@ -159,14 +159,13 @@ export class DatosCurricularesComponent implements OnInit {
   formHasChanges() {
     let url = '/' + this.tipoDeclaracion;
     if (this.declaracionSimplificada) url += '/simplificada';
-    let isDirty = this.datosCurricularesDeclaranteForm.dirty;
-    //console.log(isDirty);
+    const sinGuardar = this.datosCurricularesDeclaranteForm.dirty || this.datosHeredados;
 
-    if (isDirty) {
+    if (sinGuardar) {
       const dialogRef = this.dialog.open(DialogComponent, {
         data: {
-          title: 'Tienes cambios sin guardar',
-          message: '¿Deseas continuar?',
+          title: '¿Seguro que quieres continuar?',
+          message: 'Tu información no se guardará.',
           falseText: 'Cancelar',
           trueText: 'Continuar',
         },
